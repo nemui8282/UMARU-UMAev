@@ -351,19 +351,6 @@ const COLOR_ORDER = [
 ];
 
 
-/* --- メイン処理 --- */
-POSITIONS.forEach((pos, index) => {
-  const colorName = COLOR_ORDER[index];
-  
-  // Z-index調整: 
-  // 手前(下の方)にある馬ほど、数字を大きくして手前に表示させる
-  // Purple, Yellow, Green は手前に来てほしいので index を利用して調整
-  // (indexが大きいほど配列の後ろ＝下の方なので、そのままでも概ねOKですが念のため)
-  
-  spawnHorse(colorName, pos.left, pos.bottom, index);
-});
-
-
 // 右クリック禁止
 window.oncontextmenu = function(e) { e.preventDefault(); e.stopPropagation(); return false; };
 
@@ -522,32 +509,6 @@ window.onload = () => {
 
 
 /* --- エンディング演出 --- */////////////////////////////////////////////////////////
-const typeWriter = (element, text, speed = 100) => {
-  return new Promise((resolve) => {
-    let i = 0;
-    const type = () => {
-      if (i < text.length) {
-        const char = text.charAt(i);
-        
-        // 改行コード(\n)なら <br> タグを入れる
-        if (char === "\n") {
-          element.innerHTML += "<br>";
-        } else {
-          element.innerHTML += char;
-        }
-        
-        i++;
-        // 次の文字まで少し待つ (speedミリ秒)
-        setTimeout(type, speed);
-      } else {
-        // 全部打ち終わったら「終わったよ」と報告
-        resolve();
-      }
-    };
-    type();
-  });
-};
-
 const startEnding = () => {
   const screen = document.getElementById("screen");
   
@@ -569,10 +530,8 @@ const startEnding = () => {
     // ロード画面を消す
     loader.remove();
 
-    // エンディング画像を作成
+    // (A)エンディング画像を作成
     const endImage = document.createElement("img");
-    
-    // ★表示したい画像のパスを指定してください！
     endImage.src = "assets/endingEV.png"; 
     
     // スタイル設定
@@ -597,6 +556,48 @@ const startEnding = () => {
     setTimeout(() => {
       endImage.style.opacity = "1";
     }, 50); // 0.05秒後に実行
+
+    //(B)リプレイボタン
+    setTimeout(() => {
+      // ボタンを作る
+      const replayBtn = document.createElement("div");
+      replayBtn.className = "pixel-text"; 
+      replayBtn.innerText = "リプレイ"; // ボタンの文字
+      
+      // ボタンのデザイン（位置、色、枠線）
+      replayBtn.style.bottom = "15%"; // 画面の下の方
+      replayBtn.style.left = "50%";
+      replayBtn.style.fontSize = "15px";
+      replayBtn.style.color = "white";
+      replayBtn.style.cursor = "pointer"; // 指カーソルにする
+      // replayBtn.style.border = "2px solid white"; // 白い枠線
+      // replayBtn.style.padding = "10px 20px"; // 文字の周りの余白
+      // replayBtn.style.backgroundColor = "rgba(0,0,0,0.3)"; // 背景を半透明の黒に
+      
+      // ふわっと出す準備
+      replayBtn.style.opacity = "0";
+      replayBtn.style.transition = "opacity 1s";
+      
+      // ★クリックした時の動作★
+      replayBtn.addEventListener("click", () => {
+        // 1. 音を鳴らす
+        playSe("click");
+        
+        // 2. 音を聞かせるために0.3秒だけ待ってから...
+        setTimeout(() => {
+          // ★ページを再読み込み！（＝ゲームリセット）
+          location.reload(); 
+        }, 300);
+      });
+
+      screen.appendChild(replayBtn);
+
+      // ボタンを表示
+      setTimeout(() => {
+        replayBtn.style.opacity = "1";
+      }, 50);
+
+    }, 5000);
 
   }, 3000); // 3秒待機
 };
