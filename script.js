@@ -150,46 +150,67 @@ const HORSE_TYPES = {
 const preloadEnding = new Image();
 preloadEnding.src = "assets/endingEV.png"; // 画像のパス
 
-/* --- 音素材の準備 --- */
-const AUDIO_LIST = {
-  click: new Audio("assets/click.mp3"),
-  hyuun: new Audio("assets/hyuun.mp3")
+/* --- 音素材の準備 --- *///////////////////////////////////////////////////////////////////
+const SOUND_PATHS = {
+  click: "assets/click.mp3",
+  hyuun: "assets/hyuun.mp3"
 };
 
-// 音を鳴らす便利関数
+// 音声を事前に読み込んでおく箱
+const AUDIO_CACHE = {};
+
+// ページを開いた瞬間に読み込みを開始する
+Object.keys(SOUND_PATHS).forEach(key => {
+  const audio = new Audio(SOUND_PATHS[key]);
+  audio.preload = "auto"; // 事前読み込みON
+  AUDIO_CACHE[key] = audio;
+});
+
+// 音を鳴らす最強関数
 const playSe = (name) => {
-  if (AUDIO_LIST[name]) {
-    // 連続で鳴らせるように巻き戻す
-    AUDIO_LIST[name].currentTime = 0;
-    AUDIO_LIST[name].play().catch(e => {
-      // エラーが出てもゲームを止めない
-      console.log("再生エラー:", e);
-    });
+  const original = AUDIO_CACHE[name];
+  if (!original) return;
+
+  // クリック音のような「連打する音」は、複製(クローン)して鳴らす
+  // これでAndroidでも連打が可能になり、音飛びを防げます
+  if (name === "click") {
+    const clone = original.cloneNode();
+    clone.volume = 1.0; // 音量MAX
+    clone.play().catch(e => console.log("再生ブロック:", e));
+  } 
+  // ポンッ！のような「大事な音」は、本体を鳴らす
+  else {
+    original.currentTime = 0;
+    original.play().catch(e => console.log("再生ブロック:", e));
   }
 };
 
-/* --- 【重要】iPhone対策：音のアンロック処理 --- */
-// 画面のどこかを最初に触った瞬間に、全音源を「無音」で一瞬再生する
+/* --- iPhone対策：音のアンロック処理 --- */
+// 画面を最初に1回触った瞬間に、すべての音を一瞬だけ「無音再生」して
+// スマホに「このページは音を出していいよ！」と許可させる
 const unlockAudio = () => {
-  Object.values(AUDIO_LIST).forEach(audio => {
+  console.log("音のアンロック開始！");
+  
+  Object.values(AUDIO_CACHE).forEach(audio => {
     audio.muted = true;  // ミュートにする
     audio.play().then(() => {
-      audio.pause();     // すぐ止める
+      // 再生できたらすぐに止めて、ミュート解除（準備完了！）
+      audio.pause();
       audio.currentTime = 0;
-      audio.muted = false; // ミュート解除（準備完了！）
+      audio.muted = false;
     }).catch(e => {
-      console.log("アンロック失敗（まだ早いかも）", e);
+      console.log("アンロック失敗（まだ準備中かも）", e);
     });
   });
 
-  // 一回やればOKなので、イベントを削除する
+  // 一回やればOKなので、監視を解除する
   document.body.removeEventListener("touchstart", unlockAudio);
   document.body.removeEventListener("click", unlockAudio);
 };
 
-// 画面タッチとクリックの両方で待ち構える
-document.body.addEventListener("touchstart", unlockAudio, { once: true });
-document.body.addEventListener("click", unlockAudio, { once: true });
+// 画面タッチ(スマホ) と クリック(PC) の両方で待ち構える
+document.body.addEventListener("touchstart", unlockAudio, { once: true, capture: true });
+document.body.addEventListener("click", unlockAudio, { once: true, capture: true });
 /////////////////////////////////////////////////////////////////////////////
 
 const screen = document.getElementById("screen");
@@ -631,3 +652,4 @@ const startEnding = () => {
 
 
 };
+
