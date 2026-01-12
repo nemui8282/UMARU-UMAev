@@ -146,6 +146,10 @@ const HORSE_TYPES = {
   },
 };
 
+// エンディング画像を読み込んでおく
+const preloadEnding = new Image();
+preloadEnding.src = "assets/endingEV.png"; // 画像のパス
+
 
 const screen = document.getElementById("screen");
 
@@ -561,3 +565,4 @@ const startEnding = () => {
   }, 3000); // 3秒待機
 
 };
+
