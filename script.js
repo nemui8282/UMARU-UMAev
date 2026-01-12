@@ -152,58 +152,53 @@ preloadEnding.src = "assets/endingEV.png"; // 画像のパス
 
 /* --- 音素材の準備 --- *///////////////////////////////////////////////////////////////////
 const SOUND_PATHS = {
-  click: "assets/click.mp3",
-  hyuun: "assets/hyuun.mp3"
+  click: "assets/sounds/click.mp3",
+  pop:   "assets/sounds/pop.mp3",
+  hyuun: "assets/sounds/hyuun.mp3"
 };
 
-// 音声を事前に読み込んでおく箱
-const AUDIO_CACHE = {};
+// 音源を入れておく箱
+const AUDIO_LIST = {};
 
-// ページを開いた瞬間に読み込みを開始する
+// 1. ページ読み込み時に、音源を作ってしまう
 Object.keys(SOUND_PATHS).forEach(key => {
   const audio = new Audio(SOUND_PATHS[key]);
-  audio.preload = "auto"; // 事前読み込みON
-  AUDIO_CACHE[key] = audio;
+  audio.preload = "auto"; // 事前読み込み
+  AUDIO_LIST[key] = audio;
 });
 
-// 音を鳴らす最強関数
+// 2. 音を鳴らす関数（シンプルに戻しました）
 const playSe = (name) => {
-  const original = AUDIO_CACHE[name];
-  if (!original) return;
+  const audio = AUDIO_LIST[name];
+  if (!audio) return;
 
-  // クリック音のような「連打する音」は、複製(クローン)して鳴らす
-  // これでAndroidでも連打が可能になり、音飛びを防げます
-  if (name === "click") {
-    const clone = original.cloneNode();
-    clone.volume = 1.0; // 音量MAX
-    clone.play().catch(e => console.log("再生ブロック:", e));
-  } 
-  // ポンッ！のような「大事な音」は、本体を鳴らす
-  else {
-    original.currentTime = 0;
-    original.play().catch(e => console.log("再生ブロック:", e));
+  // iPhone対策：強制的に頭出しして再生
+  audio.currentTime = 0;
+  audio.muted = false;
+  
+  // 再生実行（エラーが出ても無視する）
+  const playPromise = audio.play();
+  if (playPromise !== undefined) {
+    playPromise.catch(e => {
+      console.log("再生エラー(まだ準備中かも):", e);
+    });
   }
 };
 
-/* --- iPhone対策：音のアンロック処理 --- */
-// 画面を最初に1回触った瞬間に、すべての音を一瞬だけ「無音再生」して
-// スマホに「このページは音を出していいよ！」と許可させる
+/* --- 重要：iPhone用 音のアンロック処理 --- */
+// 「画面を最初に触った瞬間」に、すべての音を一瞬だけ無音で再生する
+// これでiPhoneに「音を出していいよ」と許可させる
 const unlockAudio = () => {
-  console.log("音のアンロック開始！");
-  
-  Object.values(AUDIO_CACHE).forEach(audio => {
-    audio.muted = true;  // ミュートにする
+  Object.values(AUDIO_LIST).forEach(audio => {
+    audio.muted = true; // ミュートにする
     audio.play().then(() => {
-      // 再生できたらすぐに止めて、ミュート解除（準備完了！）
-      audio.pause();
+      audio.pause();      // すぐ止める
       audio.currentTime = 0;
-      audio.muted = false;
-    }).catch(e => {
-      console.log("アンロック失敗（まだ準備中かも）", e);
-    });
+      audio.muted = false; // ミュート解除
+    }).catch(e => console.log(e));
   });
 
-  // 一回やればOKなので、監視を解除する
+  // 1回やればOKなのでイベントを消す
   document.body.removeEventListener("touchstart", unlockAudio);
   document.body.removeEventListener("click", unlockAudio);
 };
@@ -260,6 +255,17 @@ const spawnHorse = (type, x, y, index) => {
     if (horse.classList.contains("pulled")) return;
     if (e.type === "touchstart") e.preventDefault();
     if (isPulling) return;
+
+    // ▼▼▼ 追加：触った瞬間に「pop音」を空回しして、iPhoneの機嫌を取る ▼▼▼
+    if (AUDIO_LIST["pop"]) {
+      AUDIO_LIST["pop"].muted = true;
+      AUDIO_LIST["pop"].play().then(() => {
+        AUDIO_LIST["pop"].pause();
+        AUDIO_LIST["pop"].currentTime = 0;
+        AUDIO_LIST["pop"].muted = false;
+      }).catch(e => {});
+    }
+    // ▲▲▲ ここまで ▲▲▲
 
     horse.style.transition = 'none';
     isPulling = true;
@@ -652,4 +658,5 @@ const startEnding = () => {
 
 
 };
+
 
