@@ -151,18 +151,46 @@ const preloadEnding = new Image();
 preloadEnding.src = "assets/endingEV.png"; // 画像のパス
 
 /* --- 音素材の準備 --- */
-const SOUNDS = {
-  click:   "assets/click.mp3",
-  hyuun:     "assets/hyuun.mp3"
+const AUDIO_LIST = {
+  click: new Audio("assets/click.mp3"),
+  hyuun: new Audio("assets/hyuun.mp3")
 };
 
 // 音を鳴らす便利関数
 const playSe = (name) => {
-  const audio = new Audio(SOUNDS[name]);
-  audio.currentTime = 0;
-  audio.play();
+  if (AUDIO_LIST[name]) {
+    // 連続で鳴らせるように巻き戻す
+    AUDIO_LIST[name].currentTime = 0;
+    AUDIO_LIST[name].play().catch(e => {
+      // エラーが出てもゲームを止めない
+      console.log("再生エラー:", e);
+    });
+  }
 };
 
+/* --- 【重要】iPhone対策：音のアンロック処理 --- */
+// 画面のどこかを最初に触った瞬間に、全音源を「無音」で一瞬再生する
+const unlockAudio = () => {
+  Object.values(AUDIO_LIST).forEach(audio => {
+    audio.muted = true;  // ミュートにする
+    audio.play().then(() => {
+      audio.pause();     // すぐ止める
+      audio.currentTime = 0;
+      audio.muted = false; // ミュート解除（準備完了！）
+    }).catch(e => {
+      console.log("アンロック失敗（まだ早いかも）", e);
+    });
+  });
+
+  // 一回やればOKなので、イベントを削除する
+  document.body.removeEventListener("touchstart", unlockAudio);
+  document.body.removeEventListener("click", unlockAudio);
+};
+
+// 画面タッチとクリックの両方で待ち構える
+document.body.addEventListener("touchstart", unlockAudio, { once: true });
+document.body.addEventListener("click", unlockAudio, { once: true });
+/////////////////////////////////////////////////////////////////////////////
 
 const screen = document.getElementById("screen");
 
@@ -600,5 +628,6 @@ const startEnding = () => {
     }, 5000);
 
   }, 3000); // 3秒待機
+
 
 };
