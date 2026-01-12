@@ -156,18 +156,61 @@ const SOUND_PATHS = {
   hyuun: "assets/hyuun.mp3"
 };
 
-// 音を鳴らす関数（安全装置付き）
+// 音声を事前に読み込んでおく箱
+const AUDIO_CACHE = {};
+
+// ページを開いた瞬間に読み込みを開始する
+Object.keys(SOUND_PATHS).forEach(key => {
+  const audio = new Audio(SOUND_PATHS[key]);
+  audio.preload = "auto"; // 事前読み込みON
+  AUDIO_CACHE[key] = audio;
+});
+
+// 音を鳴らす最強関数
 const playSe = (name) => {
-  // 毎回新しく作る（一番バグが起きにくい）
-  const audio = new Audio(SOUND_PATHS[name]);
-  
-  // 再生を試みる
-  audio.play().catch(e => {
-    // iPhoneなどで「ダメ！」と言われても
-    // エラーを出さずに「はいそうですか」とスルーする
-    // (これでゲームが止まることはありません)
-  });
+  const original = AUDIO_CACHE[name];
+  if (!original) return;
+
+  // クリック音のような「連打する音」は、複製(クローン)して鳴らす
+  // これでAndroidでも連打が可能になり、音飛びを防げます
+  if (name === "click") {
+    const clone = original.cloneNode();
+    clone.volume = 1.0; // 音量MAX
+    clone.play().catch(e => console.log("再生ブロック:", e));
+  } 
+  // ポンッ！のような「大事な音」は、本体を鳴らす
+  else {
+    original.currentTime = 0;
+    original.play().catch(e => console.log("再生ブロック:", e));
+  }
 };
+
+/* --- iPhone対策：音のアンロック処理 --- */
+// 画面を最初に1回触った瞬間に、すべての音を一瞬だけ「無音再生」して
+// スマホに「このページは音を出していいよ！」と許可させる
+const unlockAudio = () => {
+  console.log("音のアンロック開始！");
+  
+  Object.values(AUDIO_CACHE).forEach(audio => {
+    audio.muted = true;  // ミュートにする
+    audio.play().then(() => {
+      // 再生できたらすぐに止めて、ミュート解除（準備完了！）
+      audio.pause();
+      audio.currentTime = 0;
+      audio.muted = false;
+    }).catch(e => {
+      console.log("アンロック失敗（まだ準備中かも）", e);
+    });
+  });
+
+  // 一回やればOKなので、監視を解除する
+  document.body.removeEventListener("touchstart", unlockAudio);
+  document.body.removeEventListener("click", unlockAudio);
+};
+
+// 画面タッチ(スマホ) と クリック(PC) の両方で待ち構える
+document.body.addEventListener("touchstart", unlockAudio, { once: true, capture: true });
+document.body.addEventListener("click", unlockAudio, { once: true, capture: true });
 /////////////////////////////////////////////////////////////////////////////
 
 const screen = document.getElementById("screen");
@@ -609,6 +652,7 @@ const startEnding = () => {
 
 
 };
+
 
 
 
