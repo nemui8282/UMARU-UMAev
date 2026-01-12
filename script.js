@@ -146,9 +146,22 @@ const HORSE_TYPES = {
   },
 };
 
-// エンディング画像を読み込んでおく
+// エンディング画像を裏でこっそり読み込んでおく魔法
 const preloadEnding = new Image();
 preloadEnding.src = "assets/endingEV.png"; // 画像のパス
+
+/* --- 音素材の準備 --- */
+const SOUNDS = {
+  click:   "assets/click.mp3",
+  hyuun:     "assets/hyuun.mp3"
+};
+
+// 音を鳴らす便利関数
+const playSe = (name) => {
+  const audio = new Audio(SOUNDS[name]);
+  audio.currentTime = 0;
+  audio.play();
+};
 
 
 const screen = document.getElementById("screen");
@@ -238,6 +251,10 @@ const spawnHorse = (type, x, y, index) => {
     clearInterval(timer);
     isPulling = false;
 
+    setTimeout(() =>{
+      playSe("hyuun");
+    },1000);
+
     // ▼▼▼ 追加：抜けた瞬間「ブブッ！」と強めに震える ▼▼▼
     if (window.navigator.vibrate) window.navigator.vibrate(200);
     
@@ -247,8 +264,8 @@ const spawnHorse = (type, x, y, index) => {
 
     // もし9匹(POSITIONSの数)と一致したら、エンディングへ
     if (pulledCount === POSITIONS.length) {
-      // 最後の馬が飛んでいくのを少し(1秒)待ってから画面切り替え
-      setTimeout(startEnding, 1000);
+      // 最後の馬が飛んでいくのを少し(3秒)待ってから画面切り替え
+      setTimeout(startEnding, 2000);
     }
     
     console.log("1匹抜けた！合計: " + pulledCount);
@@ -465,6 +482,10 @@ const setupTextSystem = () => {
     
     // クリック時の動作
     div.addEventListener("click", () => {
+
+      playSe("click"); //click.mp3鳴らす
+
+
       step++;
       // 次のメッセージがあれば表示
       if (step < data.messages.length) {
@@ -563,6 +584,4 @@ const startEnding = () => {
     }, 50); // 0.05秒後に実行
 
   }, 3000); // 3秒待機
-
 };
-
