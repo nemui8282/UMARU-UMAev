@@ -500,10 +500,25 @@ const setupTextSystem = () => {
 };
 
 /* --- 最後に実行！ --- */
-spawnDeco();
-setupTextSystem();
-setupCounter(); // ★カウンターを表示！
 
+window.onload = () => {
+  // 1. 準備完了したらここが動く
+  console.log("全部読み込んだよ！ゲームスタート！");
+
+  // 2. 装飾や文字を表示
+  spawnDeco();
+  setupTextSystem();
+  setupCounter();
+  
+  // 3. 馬を9匹生成
+  POSITIONS.forEach((pos, index) => {
+    // もし色が足りなかったらループさせる安全策
+    const colorName = COLOR_ORDER[index % COLOR_ORDER.length];
+    
+    // 馬を生み出す
+    spawnHorse(colorName, pos.left, pos.bottom, index);
+  });
+};
 
 
 /* --- エンディング演出 --- */////////////////////////////////////////////////////////
