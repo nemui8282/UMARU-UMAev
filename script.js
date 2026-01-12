@@ -533,7 +533,7 @@ const startEnding = () => {
     const endImage = document.createElement("img");
     
     // ★表示したい画像のパスを指定してください！
-    endImage.src = "assets/ending.png"; 
+    endImage.src = "assets/endingEV.png"; 
     
     // スタイル設定
     endImage.style.position = "absolute";
@@ -559,4 +559,5 @@ const startEnding = () => {
     }, 50); // 0.05秒後に実行
 
   }, 3000); // 3秒待機
+
 };
