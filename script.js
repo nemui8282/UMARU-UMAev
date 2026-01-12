@@ -253,7 +253,7 @@ const spawnHorse = (type, x, y, index) => {
 
     setTimeout(() =>{
       playSe("hyuun");
-    },1000);
+    },950);
 
     // ▼▼▼ 追加：抜けた瞬間「ブブッ！」と強めに震える ▼▼▼
     if (window.navigator.vibrate) window.navigator.vibrate(200);
@@ -600,4 +600,5 @@ const startEnding = () => {
     }, 5000);
 
   }, 3000); // 3秒待機
+
 };
