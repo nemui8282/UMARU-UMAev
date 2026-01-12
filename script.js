@@ -505,7 +505,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 馬を生み出す
     spawnHorse(colorName, pos.left, pos.bottom, index);
   });
-};
+});
 
 
 /* --- エンディング演出 --- */////////////////////////////////////////////////////////
@@ -602,6 +602,7 @@ const startEnding = () => {
   }, 3000); // 3秒待機
 
 };
+
 
 
 
