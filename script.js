@@ -488,7 +488,7 @@ const setupTextSystem = () => {
 
 /* --- 最後に実行！ --- */
 
-window.onload = () => {
+document.addEventListener("DOMContentLoaded", () => {
   // 1. 準備完了したらここが動く
   console.log("全部読み込んだよ！ゲームスタート！");
 
@@ -602,6 +602,7 @@ const startEnding = () => {
   }, 3000); // 3秒待機
 
 };
+
 
 
 
