@@ -218,17 +218,6 @@ const spawnHorse = (type, x, y, index) => {
     if (e.type === "touchstart") e.preventDefault();
     if (isPulling) return;
 
-    // ▼▼▼ 追加：触った瞬間に「pop音」を空回しして、iPhoneの機嫌を取る ▼▼▼
-    if (AUDIO_LIST["pop"]) {
-      AUDIO_LIST["pop"].muted = true;
-      AUDIO_LIST["pop"].play().then(() => {
-        AUDIO_LIST["pop"].pause();
-        AUDIO_LIST["pop"].currentTime = 0;
-        AUDIO_LIST["pop"].muted = false;
-      }).catch(e => {});
-    }
-    // ▲▲▲ ここまで ▲▲▲
-
     horse.style.transition = 'none';
     isPulling = true;
     startTime = Date.now();
@@ -620,6 +609,7 @@ const startEnding = () => {
 
 
 };
+
 
 
 
