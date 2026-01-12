@@ -153,59 +153,21 @@ preloadEnding.src = "assets/endingEV.png"; // 画像のパス
 /* --- 音素材の準備 --- *///////////////////////////////////////////////////////////////////
 const SOUND_PATHS = {
   click: "assets/sounds/click.mp3",
-  pop:   "assets/sounds/pop.mp3",
   hyuun: "assets/sounds/hyuun.mp3"
 };
 
-// 音源を入れておく箱
-const AUDIO_LIST = {};
-
-// 1. ページ読み込み時に、音源を作ってしまう
-Object.keys(SOUND_PATHS).forEach(key => {
-  const audio = new Audio(SOUND_PATHS[key]);
-  audio.preload = "auto"; // 事前読み込み
-  AUDIO_LIST[key] = audio;
-});
-
-// 2. 音を鳴らす関数（シンプルに戻しました）
+// 音を鳴らす関数（安全装置付き）
 const playSe = (name) => {
-  const audio = AUDIO_LIST[name];
-  if (!audio) return;
-
-  // iPhone対策：強制的に頭出しして再生
-  audio.currentTime = 0;
-  audio.muted = false;
+  // 毎回新しく作る（一番バグが起きにくい）
+  const audio = new Audio(SOUND_PATHS[name]);
   
-  // 再生実行（エラーが出ても無視する）
-  const playPromise = audio.play();
-  if (playPromise !== undefined) {
-    playPromise.catch(e => {
-      console.log("再生エラー(まだ準備中かも):", e);
-    });
-  }
-};
-
-/* --- 重要：iPhone用 音のアンロック処理 --- */
-// 「画面を最初に触った瞬間」に、すべての音を一瞬だけ無音で再生する
-// これでiPhoneに「音を出していいよ」と許可させる
-const unlockAudio = () => {
-  Object.values(AUDIO_LIST).forEach(audio => {
-    audio.muted = true; // ミュートにする
-    audio.play().then(() => {
-      audio.pause();      // すぐ止める
-      audio.currentTime = 0;
-      audio.muted = false; // ミュート解除
-    }).catch(e => console.log(e));
+  // 再生を試みる
+  audio.play().catch(e => {
+    // iPhoneなどで「ダメ！」と言われても
+    // エラーを出さずに「はいそうですか」とスルーする
+    // (これでゲームが止まることはありません)
   });
-
-  // 1回やればOKなのでイベントを消す
-  document.body.removeEventListener("touchstart", unlockAudio);
-  document.body.removeEventListener("click", unlockAudio);
 };
-
-// 画面タッチ(スマホ) と クリック(PC) の両方で待ち構える
-document.body.addEventListener("touchstart", unlockAudio, { once: true, capture: true });
-document.body.addEventListener("click", unlockAudio, { once: true, capture: true });
 /////////////////////////////////////////////////////////////////////////////
 
 const screen = document.getElementById("screen");
@@ -658,5 +620,6 @@ const startEnding = () => {
 
 
 };
+
 
 
