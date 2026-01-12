@@ -152,8 +152,8 @@ preloadEnding.src = "assets/endingEV.png"; // 画像のパス
 
 /* --- 音素材の準備 --- *///////////////////////////////////////////////////////////////////
 const SOUND_PATHS = {
-  click: "assets/sounds/click.mp3",
-  hyuun: "assets/sounds/hyuun.mp3"
+  click: "assets/click.mp3",
+  hyuun: "assets/hyuun.mp3"
 };
 
 // 音を鳴らす関数（安全装置付き）
@@ -609,6 +609,7 @@ const startEnding = () => {
 
 
 };
+
 
 
 
